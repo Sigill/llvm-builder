@@ -1,6 +1,5 @@
-# Build with rpmbuild -bb llvm15xx.spec --define "_sourcedir $PWD/root" --verbose
 %define name llvm15
-%define version 0.1
+%define version 0.3
 %define release 1
 
 %global __strip %{_sourcedir}/opt/llvm-15/bin/llvm-strip
@@ -33,5 +32,7 @@ cp -r %{_sourcedir}/opt %{buildroot}/
 
 
 %changelog
+* Thu Oct 21 2022 <cyrille.faucheux@gmail.com>
+- Release 15.0.3-1.
 * Thu Sep 22 2022 <cyrille.faucheux@gmail.com>
 - Release 15.0.1-1.

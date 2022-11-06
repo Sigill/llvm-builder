@@ -17,3 +17,5 @@ RUN yum install -y \
   libxml2-devel \
   mpfr-devel \
   perl-Data-Dumper-Concise
+
+RUN ln -sn /usr/bin/cmake3 /usr/bin/cmake

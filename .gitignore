@@ -1,3 +1,6 @@
 llvm-*/
+llvm-*.tar.gz
 cache/
 output/
+node_modules/
+.vscode/

@@ -11,9 +11,7 @@ Pre-build packages are available here: <https://apt.llvm.org/>.
 ```sh
 git clone --depth 1 -b llvmorg-x.y.z --single-branch https://github.com/llvm/llvm-project.git llvm-project-x.y.z
 
-# Edit llvm15.spec and build-{sles15.x|centos7}.sh accordingly.
-
-./build-{sles15.x|centos7}.sh
+./build-containerized.sh --env sles15.3|sles15.4|centos7 --source llvm-project-x.y.z -v x.y.z -j N
 ```
 
 ## License

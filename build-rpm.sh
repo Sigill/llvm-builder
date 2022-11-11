@@ -4,13 +4,6 @@ set -e
 WORKSPACE=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
 source $WORKSPACE/utils.sh
 
-require_arg() {
-  if [ -z "$1" ]; then
-    >&2 echo "$2 not specified"
-    exit 1
-  fi
-}
-
 BLD=
 OUT=
 VERSION=
@@ -44,7 +37,7 @@ VERSION_MAJOR=${VERSION%%.*}
 PREFIX=/opt/clang-$VERSION_MAJOR
 PACKAGE_NAME=clang$VERSION_MAJOR
 
-# We should be able to replace _sourcedir by buildroot and not do anything during %install, but on centos7, rpmbuild starts by removing buildroot.
+# We should be able to replace _sourcedir by buildroot and not do anything during %install, but on some distributions (eg: centos7), rpmbuild starts by removing buildroot.
 run rpmbuild -bb "$WORKSPACE/clang.spec" \
   --define "_binary_payload w4.gzdio" \
   --define "_rpmfilename %%{NAME}-%%{VERSION}-%%{RELEASE}.%%{ARCH}.rpm" \

@@ -1,6 +1,5 @@
 import * as commander from 'commander';
 import * as fs from 'fs';
-import * as fsp from 'fs/promises';
 import * as path from 'path';
 import dargs from 'dargs';
 import got from 'got';
@@ -44,19 +43,17 @@ function pipe_commands(commands: ReadonlyArray<ReadonlyArray<string>>) {
 }
 
 async function download_and_extract(url: string, archive: string, dest: string, {stripComponents}: {stripComponents?: number} = {}) {
-  await fsp.mkdir(dest, { recursive: true });
+  if (fs.existsSync(dest)) {
+    return;
+  }
+
+  fs.mkdirSync(dest, { recursive: true });
 
   const strip_opt = dargs({stripComponents: stripComponents?.toString()} as any, {includes: ['stripComponents']});
 
   if (fs.existsSync(archive)) {
     return execute(['tar', '-xzf', archive, '-C', dest, ...strip_opt]);
   } else {
-    // const a = execa('curl', ['-L', url], {stdin: 'ignore', stdout: 'pipe', stderr: process.stderr});
-    // const b = execa('tee', [archive], {stdin: 'pipe', stdout: 'pipe', stderr: process.stderr});
-    // a.stdout?.pipe(b.stdin as Writable);
-    // const c = execa('tar', ['-xz', '-C', dest, '--strip-components=1'], {stdin: 'pipe', stdout: 'inherit', stderr: process.stderr});
-    // b.stdout?.pipe(c.stdin as Writable);
-    // return c;
     return execute(['bash', '-c',
                     pipe_commands([
                       ['curl', '-L', url],

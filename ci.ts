@@ -124,6 +124,8 @@ function execute(command: string[], {title, skip, env, cwd}: {title?: string, sk
         'bash', 'build-containerized.sh', '--env', os, '--source', sourceDir, '-v', tag.version,
         ...dargs(opts, {includes: ['j', 'k', 'l'], useEquals: false})]);
     }
+
+    step(`Removing ${sourceDir}`, () => fs.rmSync(sourceDir, {recursive: true}));
   }
 
   jsonfile.writeFileSync(knownTagsFile, tags, {spaces: 2, EOL: '\n'});

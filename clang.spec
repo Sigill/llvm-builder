@@ -14,8 +14,7 @@ functionality.
 
 
 %install
-mkdir -p %{buildroot}
-cp -r $(dirname %{_sourcedir}%{_prefix}) %{buildroot}/
+DESTDIR="%{buildroot}" cmake --build "%{_sourcedir}" --target install
 
 
 %files

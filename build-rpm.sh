@@ -7,6 +7,11 @@ source $WORKSPACE/utils.sh
 BLD=
 OUT=
 VERSION=
+TESTINSTALL=
+
+function usage() {
+  echo "$0 --build <build dir> -v|--version <version> [--output <output directory>] [--test-install]"
+}
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -22,6 +27,10 @@ while [[ $# -gt 0 ]]; do
       VERSION="$2"
       shift 2
       ;;
+    --test-install)
+      TESTINSTALL=YES
+      shift
+      ;;
     *)
       >&2 echo "Unknown argument $1"
       exit 1
@@ -30,7 +39,6 @@ while [[ $# -gt 0 ]]; do
 done
 
 require_arg "$BLD" "Build directory"
-require_arg "$OUT" "Output directory"
 require_arg "$VERSION" "Version"
 
 VERSION_MAJOR=${VERSION%%.*}
@@ -42,14 +50,19 @@ run rpmbuild -bb "$WORKSPACE/clang.spec" \
   --define "_binary_payload w4.gzdio" \
   --define "_rpmfilename %%{NAME}-%%{VERSION}-%%{RELEASE}.%%{ARCH}.rpm" \
   --define "_rpmdir /tmp/RPMS" \
-  --define "_sourcedir $BLD/root" \
+  --define "_sourcedir $BLD" \
   --define "_name $PACKAGE_NAME" \
   --define "_prefix $PREFIX" \
   --define "_version $VERSION" \
   --define "_release 1" \
   --verbose
 
-rpm -ivh /tmp/RPMS/*.rpm
-"$PREFIX/bin/clang++" -std=c++2b -fopenmp "$WORKSPACE/test.cpp" -o /tmp/a.out
-/tmp/a.out
-mv /tmp/RPMS/*.rpm "$OUT"
+if [ "$TESTINSTALL" = YES ]; then
+  rpm -ivh /tmp/RPMS/*.rpm
+  "$PREFIX/bin/clang++" -std=c++2b -fopenmp "$WORKSPACE/test.cpp" -o /tmp/a.out
+  /tmp/a.out
+fi
+
+if [ -n "$OUT" ]; then
+  mv /tmp/RPMS/*.rpm "$OUT"
+fi

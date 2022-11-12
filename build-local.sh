@@ -14,6 +14,10 @@ J=
 K=
 L=
 
+function usage() {
+  echo "$0 --source <source-dir> --build <build-dir> --cache <cache dir> -v|--version <version> [--cc <c compiler>] [--cxx <cxx compiler>] [-j <number>] [-k <number>] [-l <number>]"
+}
+
 while [[ $# -gt 0 ]]; do
   case $1 in
     --source)
@@ -52,8 +56,13 @@ while [[ $# -gt 0 ]]; do
       L="$2"
       shift 2
       ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
     *)
       >&2 echo "Unknown argument $1"
+      >&2 usage
       exit 1
       ;;
   esac
@@ -86,4 +95,4 @@ run cmake -S "$SRC/llvm" -B "$BLD" \
   -DLLVM_PARALLEL_LINK_JOBS=${L:-$(nproc)} \
   -DCMAKE_INSTALL_PREFIX="$PREFIX"
 
-DESTDIR="$BLD/root" cmake --build "$BLD" --target install -j ${J:-$(nproc)}
+cmake --build "$BLD" -j ${J:-$(nproc)}

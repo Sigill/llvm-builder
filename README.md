@@ -1,6 +1,6 @@
 # Latest Clang
 
-Scripts to build recent versions of GCC for various Linux distributions.
+Scripts to build recent versions of Clang for various Linux distributions.
 
 ## Debian/Ubuntu
 

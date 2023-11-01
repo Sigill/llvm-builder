@@ -19,3 +19,6 @@ RUN yum install -y \
   perl-Data-Dumper-Concise
 
 RUN ln -sn /usr/bin/cmake3 /usr/bin/cmake
+
+RUN curl -L https://github.com/Kitware/CMake/releases/download/v3.27.7/cmake-3.27.7-linux-x86_64.tar.gz | tar -C /opt -xz
+ENV PATH="/opt/cmake-3.27.7-linux-x86_64/bin:${PATH}"

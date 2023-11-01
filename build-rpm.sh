@@ -59,8 +59,10 @@ run rpmbuild -bb "$WORKSPACE/clang.spec" \
 
 if [ "$TESTINSTALL" = YES ]; then
   rpm -ivh /tmp/RPMS/*.rpm
-  "$PREFIX/bin/clang++" -std=c++2b -fopenmp "$WORKSPACE/test.cpp" -o /tmp/a.out
-  /tmp/a.out
+  # Use libc++ to benefit from features not yet in libstdc++ (e.g. std::expected).
+  "$PREFIX/bin/clang++" -std=c++23 -stdlib=libc++ -fopenmp "$WORKSPACE/test.cpp" -o /tmp/a.out
+  LD_LIBRARY_PATH=$PREFIX/lib/$($PREFIX/bin/clang -dumpmachine)/:$PREFIX/lib:$LD_LIBRARY_PATH /tmp/a.out
+  mv /tmp/RPMS/*.rpm "$OUT"
 fi
 
 if [ -n "$OUT" ]; then

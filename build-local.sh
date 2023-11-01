@@ -87,7 +87,7 @@ run cmake -S "$SRC/llvm" -B "$BLD" \
   -DLLVM_CCACHE_DIR="$CACHE/ccache" \
   -DLLVM_TARGETS_TO_BUILD=Native \
   -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra" \
-  -DLLVM_ENABLE_RUNTIMES=openmp \
+  -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind;openmp" \
   -DLLVM_INCLUDE_TESTS=OFF \
   -DLLVM_INCLUDE_BENCHMARKS=OFF \
   -DLLVM_INCLUDE_EXAMPLES=OFF \

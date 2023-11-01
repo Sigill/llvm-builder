@@ -119,7 +119,13 @@ function execute(command: string[], {title, skip, env, cwd}: {title?: string, sk
     const sourceDir = `llvm-project-${tag.version}`;
     await download_and_extract(tag.tarball_url /*`http://localhost:9000/${sourceDir}.tar.gz`*/, `${sourceDir}.tar.gz`, sourceDir, {stripComponents: 1});
 
-    for (const os of ['sles15.3', 'sles15.4', 'centos7']) {
+    const oses = [
+      'sles15.3',
+      'sles15.4',
+      //'centos7'
+    ];
+
+    for (const os of oses) {
       await execute([
         'bash', 'build-containerized.sh', '--env', os, '--source', sourceDir, '-v', tag.version,
         ...dargs(opts, {includes: ['j', 'k', 'l'], useEquals: false})]);

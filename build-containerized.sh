@@ -72,18 +72,27 @@ if [ "$ENV" = centos7 ]; then
   source /opt/rh/devtoolset-11/enable
 fi
 
+function build {
+  ./build-local.sh \
+    --source /src \
+    --build /build \
+    --cache /cache \
+    --version $VERSION \
+    ${CC:+--cc} $CC \
+    ${CXX:+--cxx} $CXX \
+    ${J:+-j} $J \
+    ${K:+-k} $K \
+    ${L:+-l} $L
+}
+
+function buildrpm {
+  ./build-rpm.sh --build /build --output /output --version $VERSION --test-install
+}
+
 set -e
 
-./build-local.sh \
-  --source /src \
-  --build /build \
-  --cache /cache \
-  --version $VERSION \
-  ${CC:+--cc} $CC \
-  ${CXX:+--cxx} $CXX \
-  ${J:+-j} $J \
-  ${K:+-k} $K \
-  ${L:+-l} $L
+build
 
-./build-rpm.sh --build /build --output /output --version $VERSION
+buildrpm
+
 EOF

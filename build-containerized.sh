@@ -11,7 +11,7 @@ K=
 L=
 
 function usage() {
-  echo "$0 --env <sles15.3|sles15.4|debian11> --source <source directory> -v|--version <version> [-j <number>] [-k <number>] [-l <number>]"
+  echo "$0 --env <sles15.4|sles15.5|centos7> --source <source directory> -v|--version <version> [-j <number>] [-k <number>] [-l <number>]"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -59,6 +59,11 @@ require_arg "$VERSION" "Version"
 if [[ "$ENV" =~ ^sles ]]; then
   CC=gcc-11
   CXX=g++-11
+fi
+
+if [[ "$ENV" =~ ^sles15.5 ]]; then
+  CC=gcc-12
+  CXX=g++-12
 fi
 
 docker build -t $ENV-clang-builder docker -f docker/$ENV.dockerfile

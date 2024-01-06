@@ -1,9 +1,10 @@
 import * as commander from 'commander';
 import * as fs from 'fs';
+import * as fse from 'fs-extra';
 import * as path from 'path';
+import * as os from 'os';
 import dargs from 'dargs';
 import got from 'got';
-import jsonfile from 'jsonfile';
 import semver from 'semver';
 import { env } from 'process';
 import { execa } from 'execa';
@@ -24,9 +25,17 @@ interface GhTag {
 
 function positiveInteger(value: string) {
   if (!/^[1-9][0-9]*$/.test(value))
-    throw new commander.InvalidArgumentError('Not apositive integer.');
+    throw new commander.InvalidArgumentError('Not a positive integer.');
 
   return value;
+}
+
+function directoryExists(path: fs.PathLike) {
+  return fs.statSync(path, {throwIfNoEntry: false})?.isDirectory();
+}
+
+function fileExists(path: fs.PathLike) {
+  return fs.statSync(path, {throwIfNoEntry: false})?.isFile();
 }
 
 async function listTags() {
@@ -38,12 +47,12 @@ async function listTags() {
   });
 }
 
-function pipe_commands(commands: ReadonlyArray<ReadonlyArray<string>>) {
+function pipe_commands(...commands: ReadonlyArray<ReadonlyArray<string>>) {
   return commands.map(command => sh_single_quote(...command)).join(' | ');
 }
 
 async function download_and_extract(url: string, archive: string, dest: string, {stripComponents}: {stripComponents?: number} = {}) {
-  if (fs.existsSync(dest)) {
+  if (directoryExists(dest)) {
     return;
   }
 
@@ -51,14 +60,14 @@ async function download_and_extract(url: string, archive: string, dest: string, 
 
   const strip_opt = dargs({stripComponents: stripComponents?.toString()} as any, {includes: ['stripComponents']});
 
-  if (fs.existsSync(archive)) {
+  if (fileExists(archive)) {
     return execute(['tar', '-xzf', archive, '-C', dest, ...strip_opt]);
   } else {
-    return execute(['bash', '-c',
-                    pipe_commands([
-                      ['curl', '-L', url],
+    return execute(['bash', '-o', 'pipefail', '-c',
+                    pipe_commands(
+                      ['curl', ...(process.stdout.isTTY ? [] : ['-q']), '-L', url],
                       ['tee', archive],
-                      ['tar', '-xz', '-C', dest, ...strip_opt]])]);
+                      ['tar', '-xz', '-C', dest, ...strip_opt])]);
   }
 }
 
@@ -85,13 +94,15 @@ function execute(command: string[], {title, skip, env, cwd}: {title?: string, sk
     action: () => {
       return execa(command[0], command.slice(1), {env, cwd, stdio: 'inherit'})
         .catch(err => {
-          if (err.exitCode) {
-            if (err.all) console.log(err.all);
-            throw new Error(`Command failed with exit code ${err.exitCode}`);
-          } else throw err;
+          if (err.all) console.log(err.all);
+          throw err;
         });
     }
   });
+}
+
+function rpmFile(env: string, version: string) {
+  return path.join('output', env, `clang${semver.major(version)}-${version}-1.${os.machine()}.rpm`);
 }
 
 (async () => {
@@ -103,7 +114,7 @@ function execute(command: string[], {title, skip, env, cwd}: {title?: string, sk
 
   const knownTagsFile = path.join(process.cwd(), 'known_tags.json');
   const knownTags: Array<{name: string, version: string}> =
-    fs.existsSync(knownTagsFile) ? jsonfile.readFileSync(knownTagsFile) : [];
+    fs.existsSync(knownTagsFile) ? fse.readJsonSync(knownTagsFile) : [];
 
   const tags = await listTags()
   .then(tags => tags.filter(t => t.name.match(/^llvmorg-\d+\.\d+\.\d+$/)))
@@ -113,26 +124,45 @@ function execute(command: string[], {title, skip, env, cwd}: {title?: string, sk
   .filter(t => !knownTags.some(kt => kt.name === t.name))
   .sort((v1, v2) => semver.compare(v1.version, v2.version));
 
-  console.log(newTags);
+  const oses = [
+    'sles15.3',
+    'sles15.4',
+    'sles15.5',
+    // 'centos7'
+  ];
+
+  if (newTags.length === 0) {
+    console.log('No new tags.');
+    return;
+  }
+
+  const logDir = 'logs';
+  fse.ensureDirSync(logDir);
 
   for (const tag of newTags) {
     const sourceDir = `llvm-project-${tag.version}`;
-    await download_and_extract(tag.tarball_url /*`http://localhost:9000/${sourceDir}.tar.gz`*/, `${sourceDir}.tar.gz`, sourceDir, {stripComponents: 1});
 
-    const oses = [
-      'sles15.3',
-      'sles15.4',
-      //'centos7'
-    ];
-
-    for (const os of oses) {
-      await execute([
-        'bash', 'build-containerized.sh', '--env', os, '--source', sourceDir, '-v', tag.version,
-        ...dargs(opts, {includes: ['j', 'k', 'l'], useEquals: false})]);
+    if (oses.some(os => !fileExists(rpmFile(os, tag.version)))) {
+      await download_and_extract(tag.tarball_url, `${sourceDir}.tar.gz`, sourceDir, {stripComponents: 1});
     }
 
-    step(`Removing ${sourceDir}`, () => fs.rmSync(sourceDir, {recursive: true}));
+    for (const os of oses) {
+      const build_cmd = sh_single_quote(
+        './build-containerized.sh', '--env', os, '--source', sourceDir, '-v', tag.version,
+        ...dargs(opts, {includes: ['j', 'k', 'l'], useEquals: false}));
+
+      await execute([
+        './bash-wrapper.sh',
+        process.stdout.isTTY ? '--tee' : '--out', path.join(logDir, `${new Date().toJSON()}_${tag.version}_${os}.log`),
+        '--',
+        '-c', build_cmd
+      ])?.catch();
+    }
+
+    if (directoryExists(sourceDir)) {
+      step(`Removing ${sourceDir}`, () => fs.rmSync(sourceDir, {recursive: true}));
+    }
   }
 
-  jsonfile.writeFileSync(knownTagsFile, tags, {spaces: 2, EOL: '\n'});
+  fse.writeJsonSync(knownTagsFile, tags, {spaces: 2, EOL: '\n'});
 })();

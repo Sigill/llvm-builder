@@ -1,6 +1,6 @@
 import * as commander from 'commander';
 import * as fs from 'fs';
-import * as fse from 'fs-extra';
+import fse from 'fs-extra';
 import * as path from 'path';
 import * as os from 'os';
 import dargs from 'dargs';

@@ -7,6 +7,7 @@
     "moduleResolution": "nodenext",
     "removeComments": true,
     "inlineSourceMap": true,
+    "inlineSources": true,
     "newLine": "lf",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,

@@ -125,7 +125,7 @@ function rpmFile(env: string, version: string) {
   .sort((v1, v2) => semver.compare(v1.version, v2.version));
 
   const oses = [
-    'sles15.3',
+    // 'sles15.3',
     'sles15.4',
     'sles15.5',
     // 'centos7'

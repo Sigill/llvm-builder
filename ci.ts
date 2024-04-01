@@ -65,7 +65,7 @@ async function download_and_extract(url: string, archive: string, dest: string, 
   } else {
     return execute(['bash', '-o', 'pipefail', '-c',
                     pipe_commands(
-                      ['curl', ...(process.stdout.isTTY ? [] : ['-q']), '-L', url],
+                      ['curl', ...(process.stderr.isTTY ? [] : ['-s']), '-L', url],
                       ['tee', archive],
                       ['tar', '-xz', '-C', dest, ...strip_opt])]);
   }

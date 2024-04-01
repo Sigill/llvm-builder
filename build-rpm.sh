@@ -58,7 +58,7 @@ run rpmbuild -bb "$WORKSPACE/clang.spec" \
   --verbose
 
 if [ -n "$OUT" ]; then
-  mv /tmp/RPMS/*.rpm "$OUT"
+  cp /tmp/RPMS/*.rpm "$OUT"
 fi
 
 if [ "$TESTINSTALL" = YES ]; then

@@ -16,7 +16,7 @@
   "dependencies": {
     "@sigill/watch-your-step": "^0.2.0",
     "app-root-path": "^3.1.0",
-    "commander": "^11.1.0",
+    "commander": "^12.0.0",
     "dargs": "^8.1.0",
     "eslint": "^8.26.0",
     "execa": "^8.0.1",
@@ -27,7 +27,7 @@
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^20.10.0",
-    "@typescript-eslint/eslint-plugin": "^6.12.0",
+    "@typescript-eslint/eslint-plugin": "^7.4.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.3.2"
   }
